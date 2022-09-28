@@ -1,0 +1,330 @@
+<div fxLayout="row" fxLayout.xs="column" style="height: 778px !important; min-height: 500px">
+  <as-split direction="horizontal">
+    <as-split-area size="30">
+      <div fxLayout="column" fxLayout.xs="column">
+        <mat-expansion-panel [expanded]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <h6 id="site-id">{{siteId}}</h6>
+
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+
+          <div class="row">
+            <!--Production Generic tree or electric load tree-->
+            <div class="tree-type">
+              <mat-radio-group id="tree-view" name="treeview" 
+                (change)="getTreeDetails($event)">
+                <button mat-menu-item >
+                  <mat-radio-button value="Energy" [checked]="treeRadioControl == 'Energy'"></mat-radio-button>
+                  <span>Energy View</span>
+                </button>
+                <button mat-menu-item >
+                  <mat-radio-button value="Production"></mat-radio-button>
+                  <span>Production View</span>
+                </button>
+              </mat-radio-group>
+  
+            </div>
+            <!-- Energy tree -->
+            <div *ngIf="treeRadioControl == 'Energy'">
+              <mat-tree #tree id="energy-parent-node" [dataSource]="dataSource" [(treeControl)]="treeControl">
+                <mat-tree-node [id]="node.title" class="site-mat-tree-node tree-node-divider" *matTreeNodeDef="let node"
+                  matTreeNodeToggle matTreeNodePadding (click)="featureLeafItemSelectionToggle(node)"
+                  [ngClass]="{ 'background-highlight': activeNode === node }">
+                  <button type="button" (click)="$event.preventDefault()" mat-icon-button disabled></button>
+                  <mat-label class="tree-nodeClass ">{{node.title}}
+                  </mat-label>
+                </mat-tree-node>
+            
+                <mat-tree-node [id]="node.title" class="site-mat-tree-node tree-node-divider"
+                  *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding (click)="featureItemSelectionToggle(node)"
+                  [ngClass]="{ 'background-highlight': activeNode === node }">
+                  <button type="button" (click)="$event.preventDefault()" mat-icon-button matTreeNodeToggle
+                    [attr.aria-label]="'toggle ' + node.filename">
+                    <mat-icon *ngIf="treeControl.isExpanded(node)" fontIcon="Bosch-Ic-arrow-expand-down"></mat-icon>
+                    <mat-icon *ngIf="!treeControl.isExpanded(node)" fontIcon="Bosch-Ic-arrow-expand-right"></mat-icon>
+                  </button>
+                  <mat-icon class="marginRight"
+                    fontIcon="{{treeControl.isExpanded(node) ? 'bosch-ic-folder-open' : 'bosch-ic-folder'}}"></mat-icon>
+                  <mat-label class="tree-nodeClass">{{node.title}}</mat-label>
+                </mat-tree-node>
+              </mat-tree>
+            </div>
+          
+            <!-- Production tree : need to update tree data -->
+            <div *ngIf="treeRadioControl == 'Production'">
+              
+              <mat-tree #tree1 [dataSource]="dataProductionSource" [(treeControl)]="treeControl">
+                <mat-tree-node [id]="node.title" class="site-mat-tree-node tree-node-divider" *matTreeNodeDef="let node"
+                  matTreeNodeToggle matTreeNodePadding (click)="featureLeafItemSelectionToggle(node)"
+                  [ngClass]="{ 'background-highlight': activeNode === node }">
+                  <button type="button" (click)="$event.preventDefault()" mat-icon-button disabled></button>
+                  <mat-label class="tree-nodeClass">{{node.title}}
+                  </mat-label>
+                </mat-tree-node>
+            
+                <mat-tree-node [id]="node.title" class="site-mat-tree-node tree-node-divider"
+                  *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding (click)="featureItemSelectionToggle(node)"
+                  [ngClass]="{ 'background-highlight': activeNode === node }">
+                  <button type="button" (click)="$event.preventDefault()" mat-icon-button matTreeNodeToggle
+                    [attr.aria-label]="'toggle ' + node.filename">
+                    <mat-icon *ngIf="treeControl.isExpanded(node)" fontIcon="Bosch-Ic-arrow-expand-down"></mat-icon>
+                    <mat-icon *ngIf="!treeControl.isExpanded(node)" fontIcon="Bosch-Ic-arrow-expand-right"></mat-icon>
+                  </button>
+                  <mat-icon class="marginRight"
+                    fontIcon="{{treeControl.isExpanded(node) ? 'bosch-ic-folder-open' : 'bosch-ic-folder'}}"></mat-icon>
+                  <mat-label class="tree-nodeClass">{{node.title}}</mat-label>
+                </mat-tree-node>
+              </mat-tree>
+            </div>
+          
+          </div>
+        </mat-expansion-panel>
+      </div>
+    </as-split-area>
+
+    <as-split-area size="70">
+      <div fxLayout="row" fxLayout.xs="column" style="align-items: center !important;background: #f5f5f5 !important;"
+        class="site-layout">
+        <div class="col-md-5">
+          <h6 id="title">Specific Energy for
+            <span class="nodetitle" *ngIf="this.currentNode.nodeData">{{this.currentNode.nodeData.title}}</span>
+          </h6>
+        </div>
+
+        <div class="col-md-5 pull-right">
+          <span class="text">Select Date Range:</span>
+          <!-- <input class="datepicker dateStyle" type="text" ngxDaterangepickerMd [(ngModel)]="dateRange"
+            [showCustomRangeLabel]="true" [alwaysShowCalendars]="true" [ranges]="ranges" [linkedCalendars]="true"
+            [showClearButton]="true" (ngModelChange)="onChangeDateRange()" 
+            (datesUpdated)="datesUpdated($event)"
+            [locale]="{format: 'YYYY-MM-DD'}" />
+        </div> -->
+        <input ngDefaultControl class="datepicker dateStyle" type="text" ngxDaterangepickerMd [(ngModel)]="dateRange"
+            [showCustomRangeLabel]="true" [alwaysShowCalendars]="true" [ranges]="ranges" [linkedCalendars]="true"
+            [showClearButton]="true" (ngModelChange)="onChangeDateRange()"
+            [locale]="{format: 'YYYY-MM-DD'}" />
+        </div>
+        <div class="col-md-2 pull-right">
+          <button  mat-icon-button [matMenuTriggerFor]="menu" class="text marginbtn">
+            Filter
+            <span>
+              <mat-icon aria-hidden="false" aria-label="add icon" class="bosch-ic-filter" style="width: max-content">
+              </mat-icon>
+            </span>
+          </button>
+          <mat-menu #menu="matMenu">
+            <div>
+              <mat-label class="menuheader">View</mat-label>
+              <button id="clear-btn" class="pull-right clearStyle" (click)="onClearButtonClicked()">
+                <span>Clear</span>
+              </button>
+            </div>
+            <mat-radio-group ngDefaultControl id="shift-radio-group" name="radioOpt1" [(ngModel)]="useShiftwise" [ngModelOptions]="{standalone: true}"
+              (change)="onShiftwiseChanged($event)">
+              <button mat-menu-item class="text">
+                <mat-radio-button value="no"></mat-radio-button>
+                <span>Without Shiftwise</span>
+              </button>
+              <button mat-menu-item class="text" (click)="onShiftwiseChanged(true)">
+                <mat-radio-button value="yes"></mat-radio-button>
+                <span>Shiftwise</span>
+              </button>
+              <button mat-menu-item class="text" (click)="openRealTimeDialog()">
+                <mat-radio-button value="real time"></mat-radio-button>
+                <span>Real Time E/Q</span>
+              </button>
+            </mat-radio-group>
+
+            <mat-divider></mat-divider>
+
+            <div>
+              <mat-label class="menuheader">Time Range</mat-label>
+            </div>
+            <!-- <button mat-menu-item class="text">
+                  <mat-radio-button [checked]="currentTimeRange==='hourly'" (change)="onTimeRangeChanged('hourly')"></mat-radio-button>
+                  <span>Hourly</span>
+                </button> -->
+            <mat-radio-group ngDefaultControl name="radioOpt3" [(ngModel)]="currentTimeRange" [ngModelOptions]="{standalone: true}"
+              (change)="onTimeRangeChanged($event)">
+              <button mat-menu-item class="text">
+                <mat-radio-button value="daily"></mat-radio-button>
+                <span>Daily</span>
+              </button>
+              <button mat-menu-item class="text" *ngIf="isAdmin===true">
+                <mat-radio-button value="weekly"></mat-radio-button>
+                <span>Weekly</span>
+              </button>
+              <button mat-menu-item class="text" *ngIf="isAdmin===true">
+                <mat-radio-button value="monthly"></mat-radio-button>
+                <span>Monthly</span>
+              </button>
+              <button mat-menu-item class="text" *ngIf="isAdmin===true">
+                <mat-radio-button value="yearly"></mat-radio-button>
+                <span>Yearly</span>
+              </button>
+            </mat-radio-group>
+            <mat-divider></mat-divider>
+
+             <!-- <div>
+              <mat-label class="menuheader">Product</mat-label>
+            </div>
+            <mat-radio-group name="radioOpt2" [(ngModel)]="selectedProducts" [ngModelOptions]="{standalone: true}"
+              (change)="productSelectAll($event)">
+              <button mat-menu-item class="text">
+                <mat-radio-button value="all" name="all"></mat-radio-button>
+                <span>All</span>
+              </button> 
+              <button mat-menu-item *ngFor="let product of productsOfSite" class="text">
+                <mat-radio-button value="product.rId" name="product.rId">
+                </mat-radio-button>
+                <span>{{ product }}</span>
+              </button>
+            </mat-radio-group> -->
+          
+          </mat-menu>
+        </div>
+      </div>
+      <div [formGroup]="treeform">
+        <div class="row" style="margin-top: 5px;">
+            <div class="col-md-6">   
+               <div class="col-md-3">
+                  <mat-label class="menuheader">Select Product: </mat-label>
+              </div>
+                <div class="col-md-5">
+                  <mat-form-field class="example-full-width">
+                    <mat-label>Product</mat-label>
+                    <mat-select id="product" ngDefaultControl formControlName="product"  #singleSelect [(ngModel)]="selectedProducts" (selectionChange)="productSelectclick($event)">
+
+                    <!-- <input type="text" placeholder="Please select product" matInput formControlName="product" [matAutocomplete]="auto">
+                    <mat-autocomplete #auto="matAutocomplete"> -->
+                      <mat-option value="all">All</mat-option>
+                      <!-- <mat-option value="p1">p1</mat-option> -->
+                      <mat-option *ngFor="let product of productsOfSite" [value]="product">
+                        {{product}}
+                      </mat-option>
+                    <!-- </mat-autocomplete>         -->
+                    </mat-select>
+                  </mat-form-field>
+          
+                </div>
+              <div class="col-md-4"> 
+                <button id="productBtn" (click)="drawProductChart()" class="btn mat-raised-button marginRight">Product</button>
+
+              </div>
+
+          </div>
+          <div class="col-md-6">   
+             <div class="col-md-3">
+                <mat-label class="menuheader">Select Variant: </mat-label>
+            </div>
+              <div class="col-md-6">
+                <mat-form-field class="example-full-width relative-field">
+                  <mat-label>Variant</mat-label>
+                  <mat-select id="select-variant" ngDefaultControl formControlName="variant"  #singleSelect1 [(ngModel)]="selectedVariants" (selectionChange)="variantSelectclick($event)">
+                  <!-- <mat-option value="all">All</mat-option> -->
+                  <mat-option *ngFor="let item of variantList" [value]="item">
+                    {{item}}
+                  </mat-option>
+                </mat-select>
+                <mat-error *ngIf="treeform.get('variant').errors && treeform.get('variant').errors.required">Please Select Variant</mat-error>
+
+                </mat-form-field>
+        
+              </div>
+              <div class="col-md-3"> 
+                <button id="varientBtn" (click)="drawVariantChart()" class="btn mat-raised-button marginRight" [class.disabled]="!(variantList && variantList.length) || !treeform.get('variant').valid">Variant</button>
+
+              </div>
+
+          </div>
+      </div>
+
+        <!-- <mat-divider></mat-divider> -->
+
+      </div>
+
+      <div fxLayout="row" fxLayout.xs="column" style="align-items: center !important;" class="site-layout"
+        *ngIf="hasChart">
+        <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8" style="line-height: 60px;">
+          <button id="display-all" (click)="onDisplaysClick('all')" class="btn mat-raised-button marginRight">All</button>
+          <button id="display-energy" (click)="onDisplaysClick('energy')" class="btn mat-raised-button marginRight">Energy</button>
+          <button id="display-production" (click)="onDisplaysClick('production')" class="btn mat-raised-button marginRight">Production</button>
+          <!-- <button (click)="onDisplaysClick('specific')" class="btn mat-raised-button marginRight">Specific Energy</button> -->
+          <button id="display-target" (click)="onDisplaysClick('target')" class="btn mat-raised-button marginRight">Target</button>
+          <button id="display-ebyq" (click)="openEbyQtargetDialog()" class="btn mat-raised-button marginRight">Track E/Q</button>
+        </div>
+        <div class="col-xs-4 col-sm-4 col-md-4 col-lg-4">
+          <div class="pull-right row" *ngIf="currentSuccessMessage !== ''">
+            <div class="col-xs-5 col-sm-5 col-md-5 col-lg-5" [chart]="rateChart"></div>
+            <div class="col-xs-7 col-sm-7 col-md-7 col-lg-7" style="margin-top: 1em;">
+              <span class="success-rate">{{ currentSuccessPercent }}%</span> <br>
+              {{ currentSuccessMessage }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="chartContainer" fxLayout="row" fxLayout.xs="column" style="width: 98%" *ngIf="hasChart">
+        <div *ngIf="currentDisplayItem != 'ebyq'" [chart]="columnchart" style="width: 100%"></div>
+      </div>
+      <div *ngIf="currentDisplayItem == 'ebyq'" id="chartEbyqContainer" style="width: 100%">
+        <div class="wrapper">
+          <section class="quantity-section">
+            <ul class="quantity-list">
+              <li>
+                <div class="title">
+                  Target
+                </div>
+                <div class="quantity">
+                  <span>{{targetEbyQ | number : '1.3'}}</span>
+                </div>
+              </li>
+              <li>
+                <div class="title">
+                  Current
+                </div>
+                <div class="quantity">
+                  <span>{{currentTarget | number : '1.3'}}</span>
+                </div>
+              </li>
+              <li>
+                <div class="title">
+                  Delta
+                </div>
+                <div class="quantity">
+                  <span>{{deltaTarget|number : '1.3'}}</span>
+
+                </div>
+              </li>
+            </ul>
+          </section>
+          <section class="chart-section">
+            <div>
+              <div fxLayout="row wrap" fxFlex="100%;" [chart]="standardTargetChart" >
+
+            </div>
+                  
+            </div>
+      </section>
+        </div>
+      </div>
+
+      <!-- <div id="chartContainer-1" fxLayout="row" fxLayout.xs="column" style="width: 98%" *ngIf="isVarient">
+        <div [chart]="varientProductChart" style="width: 100%"></div>
+
+      </div> -->
+
+      <div id="chartContainer-2" fxLayout="row" fxLayout.xs="column" style="width: 100%" *ngIf="!(hasChart)">
+        <div class="col-xs-8 col-sm-8 col-md-8 col-lg-8" style="line-height: 300px;">
+          No data to display!
+        </div>
+      </div>
+      <mat-action-row class="expansion-footer">
+        <mat-label> &nbsp; {{totalEnergy}}</mat-label>
+      </mat-action-row>
+
+    </as-split-area>
+  </as-split>
+</div>
